@@ -1,0 +1,291 @@
+<title>DrainSmart Project Report</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: technical report — sticky contents rail on wide screens, one 70ch reading column, figures break wider. */
+:root {
+  --paper: #f6f5ef;
+  --surface: #ffffff;
+  --ink: #12261c;
+  --ink-2: #44544b;
+  --muted: #6b7a71;
+  --line: #dde3dc;
+  --accent: #1f7a55;
+  --water: #2f6fb5;
+  --warn: #c2410c;
+  --tint: #e9f3ec;
+  --f-display: 'Rubik', 'Segoe UI', Arial, sans-serif;
+  --f-body: 'IBM Plex Sans', 'Segoe UI', Arial, sans-serif;
+  --f-mono: 'IBM Plex Mono', Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1a14; --surface: #16241c; --ink: #e8efe9; --ink-2: #b9c8bf; --muted: #8fa198;
+    --line: #2a3b31; --accent: #5fc596; --water: #7fb3e8; --warn: #f0925a; --tint: #1b3326; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1a14; --surface: #16241c; --ink: #e8efe9; --ink-2: #b9c8bf; --muted: #8fa198;
+  --line: #2a3b31; --accent: #5fc596; --water: #7fb3e8; --warn: #f0925a; --tint: #1b3326; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font: 16.5px/1.65 var(--f-body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 80px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 56px; }
+@media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 24px; } nav.toc { position: static !important; } }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 14px; }
+nav.toc p { font: 600 12px/1 var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; counter-reset: s; }
+nav.toc li { counter-increment: s; }
+nav.toc a { color: var(--ink-2); text-decoration: none; display: flex; gap: 8px; }
+nav.toc a::before { content: counter(s); font-family: var(--f-mono); color: var(--muted); width: 18px; flex: none; }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); }
+main { min-width: 0; max-width: 74ch; }
+header.cover { border-bottom: 1px solid var(--line); padding-bottom: 28px; margin-bottom: 8px; }
+.eyebrow { font: 600 13px/1.2 var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 0 0 12px; }
+h1 { font: 700 clamp(36px, 6vw, 54px)/1.05 var(--f-display); margin: 0 0 14px; text-wrap: balance; letter-spacing: -.01em; }
+.lede { font-size: 20px; line-height: 1.5; color: var(--ink-2); margin: 0 0 18px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); }
+h2 { font: 600 27px/1.2 var(--f-display); margin: 52px 0 14px; text-wrap: balance; scroll-margin-top: 24px; }
+h2 .n { font: 500 15px var(--f-mono); color: var(--accent); margin-right: 10px; vertical-align: 3px; }
+h3 { font: 600 19px/1.3 var(--f-display); margin: 30px 0 8px; }
+p { margin: 0 0 14px; }
+ul, ol { margin: 0 0 14px; padding-left: 22px; }
+li { margin-bottom: 6px; }
+strong { color: var(--ink); }
+a { color: var(--accent); }
+code, .mono { font-family: var(--f-mono); font-size: .92em; }
+.formula { font-family: var(--f-mono); font-size: 15px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; overflow-x: auto; white-space: pre; line-height: 1.6; margin: 0 0 16px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 22px 0 8px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.stat b { display: block; font: 700 32px/1.1 var(--f-display); color: var(--accent); font-variant-numeric: tabular-nums; }
+.stat span { font-size: 13.5px; color: var(--ink-2); line-height: 1.4; display: block; margin-top: 4px; }
+.loop { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 18px 0; }
+@media (max-width: 560px) { .loop { grid-template-columns: minmax(0, 1fr); } }
+.loop div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 14.5px; line-height: 1.45; color: var(--ink-2); }
+.loop b { display: block; font: 600 13px var(--f-mono); color: var(--accent); margin-bottom: 4px; letter-spacing: .04em; }
+.tbl { overflow-x: auto; margin: 0 0 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; font-size: 13px; color: var(--muted); background: var(--tint); }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--f-mono); font-size: 13.5px; }
+figure { margin: 22px 0 26px; }
+figure img { display: block; width: 100%; border-radius: 10px; border: 1px solid var(--line); }
+figcaption { font-size: 13.5px; color: var(--muted); margin-top: 8px; line-height: 1.45; }
+.note { border-left: 3px solid var(--warn); background: var(--surface); padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 15px; color: var(--ink-2); margin: 0 0 16px; }
+.ok { color: var(--accent); font-weight: 600; }
+.ph { background: var(--tint); border-radius: 4px; padding: 0 4px; font-family: var(--f-mono); font-size: .9em; }
+footer { margin-top: 60px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Contents">
+    <p>Contents</p>
+    <ol>
+      <li><a href="#summary">Summary</a></li>
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#solution">Solution</a></li>
+      <li><a href="#detection">Detection method</a></li>
+      <li><a href="#risk">Risk and alerting</a></li>
+      <li><a href="#prototype">Prototype</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#failures">Failure cases</a></li>
+      <li><a href="#hardware">Hardware and cost</a></li>
+      <li><a href="#market">Market and adoption</a></li>
+      <li><a href="#pilot">Field pilot plan</a></li>
+      <li><a href="#limits">Limitations</a></li>
+      <li><a href="#checklist">Demo checklist</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="cover">
+      <p class="eyebrow">Agriculture Innovation Challenge · Problem Statement 4</p>
+      <h1>DrainSmart</h1>
+      <p class="lede">A closed-loop service that detects blocked field drains before heavy rain, sends the right crew, supervises the clearing, and uses sensors to confirm that water is flowing again.</p>
+      <div class="meta"><span>Team: <span class="ph">[Team name]</span></span><span>Institution: <span class="ph">[Institution]</span></span><span>Pilot site (modelled): Amalapuram, Konaseema, Andhra Pradesh</span></div>
+    </header>
+
+    <h2 id="summary"><span class="n">1</span>Summary</h2>
+    <p>Debris such as water hyacinth, plastic and silt chokes culverts and trash screens on village drains. Nobody notices until water tops the bank, and by then the storm has arrived. DrainSmart puts two low-cost water-level sensors at each culvert. It compares their readings with a <strong>digital twin</strong>, a physics model of how a clear drain would respond to the same rain. Drains are ranked by flood risk, crews are alerted in their own language, and each task closes only when the sensors show normal flow.</p>
+    <p>We built a working prototype: a web control room driven by a hydraulic simulation of a six-node, 131-acre paddy drain, with the live rainfall forecast for the pilot village. In the reference heavy-storm scenario:</p>
+    <div class="stats">
+      <div class="stat"><b>20 min</b><span>from debris starting to collect to the first alert</span></div>
+      <div class="stat"><b>45 min</b><span>from detection to the drain verified clear</span></div>
+      <div class="stat"><b>~200</b><span>acre-hours of waterlogging avoided vs. no action</span></div>
+      <div class="stat"><b>0</b><span>false alerts in a 75 mm storm with no blockage</span></div>
+    </div>
+    <p class="note">These figures come from simulation, not field measurement. The field pilot in section 11 is designed to replace them with measured values.</p>
+
+    <h2 id="problem"><span class="n">2</span>Problem and context</h2>
+    <p>Paddy in deltaic regions depends on dense networks of field drains that carry rainwater to rivers and outfalls. Three things make blockages costly:</p>
+    <ul>
+      <li><strong>Blockages build up silently.</strong> Floating weed and plastic collect at culverts and screens over hours or days. Nobody patrols every drain every day.</li>
+      <li><strong>Rain gives little warning.</strong> When a blocked drain meets heavy rain, the water upstream reaches bank level within hours and spills into the fields. Prolonged submergence at the panicle stage damages yield, and water over the road cuts village access.</li>
+      <li><strong>Responsibility is unclear.</strong> Shared drains fall between individual farmers, the gram panchayat and the drainage department, so a blockage often has no one assigned to it.</li>
+    </ul>
+    <p><span class="ph">[Add a local case: a farmer or panchayat interview, or district waterlogging records, as the problem statement's checklist requires.]</span></p>
+
+    <h2 id="solution"><span class="n">3</span>Solution: a closed loop</h2>
+    <p>The problem statement asks for a closed-loop service rather than a standalone sensor dashboard. DrainSmart has six stages, and every task passes through all of them.</p>
+    <div class="loop">
+      <div><b>1 · SENSE</b>Ultrasonic level sensors upstream and downstream of each culvert, rainfall from a gauge plus forecast, optional camera at the trash screen.</div>
+      <div><b>2 · DETECT</b>The digital twin predicts the level a clear drain would show. Water backing up above that prediction raises the Blockage Index.</div>
+      <div><b>3 · PRIORITISE</b>Risk combines blockage likelihood, rain due in the next 12 h, how close the water is to the bank, and acres exposed.</div>
+      <div><b>4 · ALERT</b>SMS and voice alerts in Telugu, Hindi or English to the village crew, escalating to the panchayat if nobody accepts.</div>
+      <div><b>5 · CLEAR</b>A supervised rake behind a safety checklist and emergency stop at fitted culverts. Manual crews elsewhere.</div>
+      <div><b>6 · VERIFY</b>The task closes only after three consecutive normal readings. If verification fails, it reopens automatically.</div>
+    </div>
+
+    <h2 id="detection"><span class="n">4</span>Detection method</h2>
+    <h3>The physical signature</h3>
+    <p>A culvert behaves like a constriction. When debris narrows it, flow through it drops for the same upstream head, so water stores up upstream while the downstream channel stays flat or falls. This difference is easy to measure with one sensor on each side.</p>
+    <h3>Why a digital twin is needed</h3>
+    <p>Comparing upstream with downstream alone is not enough. Rain raises levels everywhere, and at an outfall the downstream level is fixed by the river. In our first engine test, a storm with no blockage made the outfall node (D6) look fully blocked. The fix is a twin model: a copy of the drain hydraulics that receives the same measured rain but never gets blocked. Detection works on <em>residuals</em> (observed minus twin) instead of raw levels.</p>
+    <div class="formula">r_up   = upstream_observed   − upstream_twin
+r_down = downstream_observed − downstream_twin
+excess = (r_up − r_down) − learned_offset        # offset adapts slowly while BI &lt; 0.2
+diverge = slope(r_up) − slope(r_down)             # over 30 min, only while r_up rises &gt; 2 cm/h
+
+BI = clamp( 0.75 · s(excess; 4→34 cm) + 0.35 · s(diverge; 3→28 cm/h) )
+BI = 0.7 · BI + 0.3 · camera_debris_fraction     # at nodes with a camera</div>
+    <p>The learned offset absorbs calibration error between the twin and the real channel, so the twin doesn't need to be perfect. It only needs to capture how levels respond to rain.</p>
+    <h3>Explain-away across the network</h3>
+    <p>After an upstream blockage clears, or while it is still releasing stored water, the downstream nodes see a brief rise that resembles a blockage. If any upstream node has had BI above 0.5 in the last three hours, and the downstream camera does not confirm debris, the downstream BI is damped by 70% and attributed to the upstream node. This removed all secondary alerts in testing.</p>
+    <h3>Sensor health</h3>
+    <p>A fouled ultrasonic sensor tends to report a constant value. If the upstream reading varies by less than 0.1 cm over eight readings (40 minutes), the node is marked as a sensor fault, never as all clear. Its level data is excluded, the camera estimate is used where one exists, and a sensor-service task is raised.</p>
+
+    <h2 id="risk"><span class="n">5</span>Risk prioritisation and alerting</h2>
+    <div class="formula">hazard    = clamp(rain_next_12h / 60 mm)
+freeboard = clamp((upstream − 30 cm) / (bank − 30 cm))
+exposure  = 0.6 + 0.4 · (acres / 30)
+
+risk = clamp( BI · (0.35 + 0.45·hazard + 0.35·freeboard) · exposure )
+
+Critical ≥ 0.55   High ≥ 0.30   Watch: BI ≥ 0.30 (dashboard only)</div>
+    <p>A blockage in dry weather is High and goes to a crew. The same blockage with a heavy storm in the forecast becomes Critical. The dashboard shows each score's components in plain language, for example: "water is 31 cm above what a clear drain would show; camera sees 80% of the screen covered".</p>
+    <h3>Alerts and escalation</h3>
+    <ul>
+      <li>High and Critical risk create a task and send an SMS plus voice alert to the village crew in Telugu, Hindi or English. The crew replies <code>1</code> to accept, which works on any feature phone.</li>
+      <li>A Critical task nobody accepts within 30 minutes escalates to the panchayat secretary.</li>
+      <li>Verified clearance sends a confirmation to the crew and the farmers on that drain.</li>
+      <li>Every event is written to an audit log that the panchayat can use to pay contractors for verified work.</li>
+    </ul>
+
+    <h2 id="prototype"><span class="n">6</span>Prototype</h2>
+    <figure>
+      <img src="img/alert.png" alt="DrainSmart dashboard with D3 at critical risk on the drain map, the priority queue, rainfall chart and node detail" loading="lazy">
+      <figcaption>Figure 1. The control room about 20 minutes after debris starts collecting at D3: the risk score, its explanation, the twin-vs-observed levels chart and the alerts already sent.</figcaption>
+    </figure>
+    <h3>What is real and what is simulated</h3>
+    <div class="tbl"><table>
+      <tr><th>Component</th><th>Status</th></tr>
+      <tr><td>Rainfall forecast</td><td><span class="ok">Real:</span> live Open-Meteo hourly forecast for Amalapuram (16.58° N, 82.01° E)</td></tr>
+      <tr><td>Digital twin, Blockage Index, explain-away, sensor-fault logic</td><td><span class="ok">Real:</span> the same code would run on field data</td></tr>
+      <tr><td>Risk ranking, alerts in 3 languages, escalation, task workflow, verification, audit log</td><td><span class="ok">Real</span></td></tr>
+      <tr><td>Water-level and camera readings</td><td>Simulated by a hydraulic model with sensor noise (σ = 0.4 cm)</td></tr>
+      <tr><td>Crew travel and clearing times</td><td>Simulated (15–40 min travel, 10 min rake, 45 min manual)</td></tr>
+    </table></div>
+    <h3>Hydraulic model</h3>
+    <p>The drain is a chain of six channel segments, each 2,000 m² of water surface with a 1.2 m bank, feeding a river outfall. Flow through each culvert follows <code>Q = C·(1 − 0.95·b)·h^1.5</code>, where <code>b</code> is the blockage fraction and <code>C</code> grows downstream as the channel widens. Rain runoff enters each segment from its field block (runoff coefficient 0.6). Water above the bank spills into the adjacent field. It drains back once the channel has headroom and slowly soaks in. A field counts as waterlogged at more than 3 cm of extra standing water.</p>
+    <h3>Software</h3>
+    <p>The prototype is plain HTML, CSS and JavaScript, with no build step and no dependencies. <code>engine.js</code> holds the model and detector and also runs under Node for automated scenario tests. <code>app.js</code> holds the loop, risk engine, alerts, workflow and UI. A guided demo pauses at each decision point for the presenter. Backup links (<code>?scene=alert</code>, <code>flood</code>, <code>tasks</code>, <code>verified</code>, <code>impact</code>) jump straight to each key moment.</p>
+    <figure>
+      <img src="img/tasks.png" alt="Task board with the D3 blockage task on site and buttons to start the supervised rake or clear manually" loading="lazy">
+      <figcaption>Figure 2. The task board once the crew is on site and has confirmed the blockage. The rake starts only after a four-point safety checklist.</figcaption>
+    </figure>
+
+    <h2 id="results"><span class="n">7</span>Results</h2>
+    <h3>Automated scenario tests</h3>
+    <p>Each scenario ran 14 simulated hours, with a 3-hour storm starting at hour 3 and debris (where present) starting at hour 1.</p>
+    <div class="tbl"><table>
+      <tr><th>Scenario</th><th>First alert</th><th>Peak BI at other nodes</th><th class="num">Waterlogged acre-h</th><th class="num">No-action acre-h</th></tr>
+      <tr><td>25 mm/h storm, no blockage</td><td>None</td><td>≤ 0.07</td><td class="num">0</td><td class="num">0</td></tr>
+      <tr><td>80% blockage at D3, not cleared</td><td>D3, 20 min after debris</td><td>≤ 0.18</td><td class="num">195</td><td class="num">195</td></tr>
+      <tr><td>80% blockage at D3, cleared at hour 2.5</td><td>D3, 20 min after debris</td><td>≤ 0.20</td><td class="num">0</td><td class="num">195</td></tr>
+      <tr><td>45% blockage at D5, not cleared</td><td>D5, when storm flow arrived</td><td>≤ 0.20</td><td class="num">0</td><td class="num">0</td></tr>
+    </table></div>
+    <p>The partial blockage at D5 was flagged only once storm flow arrived. At dry-weather flow a 45% choke barely changes levels, so the system correctly stayed quiet until the blockage started to matter.</p>
+    <h3>Guided demo, end to end</h3>
+    <figure>
+      <img src="img/impact.png" alt="Impact tab: 201 acre-hours of waterlogging avoided, 20 minutes detection, response-time table and event log" loading="lazy">
+      <figcaption>Figure 3. The Impact tab after the storm passes. The dashed line is the shadow "no action" simulation, which gets the same rain and debris but no clearing.</figcaption>
+    </figure>
+    <div class="tbl"><table>
+      <tr><th>Stage</th><th class="num">Sim-minutes</th></tr>
+      <tr><td>Debris starts collecting → first alert</td><td class="num">20</td></tr>
+      <tr><td>Crew accepted → on site</td><td class="num">15</td></tr>
+      <tr><td>On site → cleared (supervised rake)</td><td class="num">10</td></tr>
+      <tr><td>Cleared → verified by sensors</td><td class="num">20</td></tr>
+      <tr><td><strong>Detected → verified, end to end</strong></td><td class="num"><strong>45</strong></td></tr>
+    </table></div>
+
+    <h2 id="failures"><span class="n">8</span>Failure cases</h2>
+    <p>Each case below can be demonstrated in the prototype from its scenario panel.</p>
+    <div class="tbl"><table>
+      <tr><th>Failure</th><th>System response</th></tr>
+      <tr><td>Sensor fouled by mud or weed</td><td>Flagged as a fault after 40 min of frozen readings. The node falls back to its camera and a sensor-service task is raised.</td></tr>
+      <tr><td>Rake jams and lifts only part of the debris</td><td>Water still backs up, so verification fails within an hour and the task reopens for a manual crew.</td></tr>
+      <tr><td>Heavy rain with no blockage</td><td>The twin expects the rise, so no alert goes out.</td></tr>
+      <tr><td>Surge downstream after clearing</td><td>Attributed to the upstream node it came from, with no duplicate alert.</td></tr>
+      <tr><td>No crew accepts the task</td><td>Escalates to the panchayat after 30 min.</td></tr>
+      <tr><td>Crew finds no blockage</td><td>Closed as a false alarm and counted in the metrics. The node is snoozed for 2 h unless it turns critical.</td></tr>
+      <tr><td>Emergency during clearing</td><td>An emergency stop halts and locks out the rake, and the task returns to the crew.</td></tr>
+      <tr><td>Weather API unreachable</td><td>The dashboard shows "forecast offline" and keeps running on gauge and scenario rain.</td></tr>
+    </table></div>
+
+    <h2 id="hardware"><span class="n">9</span>Hardware and cost</h2>
+    <div class="tbl"><table>
+      <tr><th>Component</th><th class="num">Est. cost (₹)</th></tr>
+      <tr><td>ESP32 microcontroller</td><td class="num">450</td></tr>
+      <tr><td>2× waterproof ultrasonic level sensors (JSN-SR04T class)</td><td class="num">700</td></tr>
+      <tr><td>ESP32-CAM for trash screen (optional)</td><td class="num">550</td></tr>
+      <tr><td>GSM module (SIM800L class) for SMS uplink</td><td class="num">350</td></tr>
+      <tr><td>6 V solar panel, charge controller, 18650 battery</td><td class="num">800</td></tr>
+      <tr><td>IP65 enclosure and pole mount</td><td class="num">400</td></tr>
+      <tr><td><strong>Total per node</strong></td><td class="num"><strong>≈ 3,250–3,500</strong></td></tr>
+    </table></div>
+    <p>These are indicative retail prices and should be confirmed with local suppliers. The sensors are mounted above the water to reduce fouling. Each node takes a reading every five minutes and buffers it through signal drops. The supervised rake is costed separately, only after a safety assessment, as the problem statement requires.</p>
+
+    <h2 id="market"><span class="n">10</span>Market and adoption</h2>
+    <p><strong>Customers:</strong> gram panchayats (responsible for village drains), irrigation and drainage departments, FPOs and farmer groups in waterlogging-prone blocks, and maintenance contractors who need proof of work.</p>
+    <p><strong>Revenue:</strong> a monitoring subscription per node (<span class="ph">[₹__ per month]</span>), installation and seasonal maintenance contracts, leasing of rake attachments at priority culverts, and verified-clearance reports for scheme audits.</p>
+    <p><strong>Differentiation:</strong> manual patrols and standalone sensor dashboards each cover part of the job. DrainSmart covers the whole loop: it separates rain from blockage, ranks what to clear first, gets a crew moving and proves the work was done. A prior-art and competitor check is still needed before claiming novelty.</p>
+
+    <h2 id="pilot"><span class="n">11</span>Field pilot plan</h2>
+    <ol>
+      <li><strong>Weeks 1–2: permissions and baseline.</strong> Get panchayat consent. Identify two or three culverts that block often. Record past waterlogging through farmer interviews and any panchayat records.</li>
+      <li><strong>Weeks 3–4: install and calibrate.</strong> Mount the nodes, calibrate the twin's learned offsets on dry-weather data, and train the crews on the SMS task workflow.</li>
+      <li><strong>Monsoon season: operate and measure.</strong> Use manual clearing first. Add a rake at one culvert only after a documented safety assessment with an emergency stop and isolation.</li>
+    </ol>
+    <div class="tbl"><table>
+      <tr><th>Validation metric (from the problem statement)</th><th>How it is measured</th></tr>
+      <tr><td>Blockage detection accuracy</td><td>Alerts confirmed by crews vs. false alarms, both logged by the system</td></tr>
+      <tr><td>Time to inspect and clear</td><td>Timestamps for each task stage, logged automatically</td></tr>
+      <tr><td>Waterlogging duration and depth</td><td>Field gauges at pilot blocks vs. past seasons or matched non-pilot blocks</td></tr>
+      <tr><td>Maintenance cost and uptime</td><td>₹ per node per season, % of readings from healthy sensors</td></tr>
+    </table></div>
+    <p>Partners to approach: the gram panchayat, the drainage or irrigation sub-division office, and the nearest Krishi Vigyan Kendra for crop-damage assessment.</p>
+
+    <h2 id="limits"><span class="n">12</span>Constraints, limitations and next steps</h2>
+    <ul>
+      <li><strong>The simulation is not the field.</strong> Real channels have uneven sections, backwater from downstream gates, and rainfall that varies across the catchment. The twin's adaptive offset absorbs some of this. Calibration is the first pilot task.</li>
+      <li><strong>Camera debris estimates are simulated.</strong> The next step is a small on-device classifier trained on trash-screen photos from the pilot site.</li>
+      <li><strong>Debris types vary.</strong> Silt builds up slowly and evenly, while weed mats arrive suddenly. The detector's 30-minute divergence window favours sudden blockages. A slow-trend check is planned for silting.</li>
+      <li><strong>Safety and responsibility.</strong> No unattended machinery. Every clearing goes through manual override and a checklist, and the panchayat assigns who maintains shared drains.</li>
+      <li><strong>Theft and vandalism.</strong> Nodes are pole-mounted. A node that stops reporting raises a service task.</li>
+    </ul>
+
+    <h2 id="checklist"><span class="n">13</span>Prototype demonstration checklist</h2>
+    <div class="tbl"><table>
+      <tr><th>Checklist item</th><th>Where it is covered</th></tr>
+      <tr><td>Show the problem with a local case, baseline data or stakeholder interview</td><td>Section 2. <span class="ph">[add interview or local data]</span></td></tr>
+      <tr><td>Demonstrate the core workflow with real or clearly labelled simulated data</td><td>Guided demo; "simulated sensors" banner on every screen</td></tr>
+      <tr><td>Explain unit cost, maintenance, power and connectivity assumptions, likely user</td><td>Sections 9 and 10</td></tr>
+      <tr><td>Include at least one failure case and the design response</td><td>Section 8: sensor fouling and rake jam, both shown live</td></tr>
+      <tr><td>Field-pilot plan with permissions, safety checks, indicators and feedback</td><td>Section 11</td></tr>
+    </table></div>
+
+    <footer>DrainSmart project report · Prepared for the Agriculture Innovation Challenge · Simulation results are model estimates and are labelled as such throughout.</footer>
+  </main>
+</div>

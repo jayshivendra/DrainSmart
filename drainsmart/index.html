@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DrainSmart Control Room</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+        <rect x="2" y="2" width="28" height="28" rx="7" fill="var(--brand)"/>
+        <path d="M7 19c3-3 6 3 9 0s6 3 9 0" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <path d="M16 6v7m-3-3 3 3 3-3" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">DrainSmart</div>
+        <div class="brand-sub" id="villageName">Konaseema pilot · 6 drain nodes · 131 acres</div>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="tasks">Tasks <span class="pill" id="taskCount">0</span></button>
+      <button class="tab" data-tab="metrics">Impact</button>
+      <button class="tab" data-tab="farm">Farm log</button>
+      <button class="tab" data-tab="about">How it works</button>
+    </nav>
+    <div class="clock-wrap">
+      <div class="clock" id="simClock">--:--</div>
+      <div class="speed" role="group" aria-label="Simulation speed">
+        <button data-speed="0" title="Pause">❚❚</button>
+        <button data-speed="1" title="1 sim-minute per second">1×</button>
+        <button data-speed="10" class="on" title="10 sim-minutes per second">10×</button>
+        <button data-speed="30" title="30 sim-minutes per second">30×</button>
+      </div>
+      <select id="langSel" title="Alert language">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+        <option value="te">తెలుగు</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="simbar">
+    <span class="badge sim">SIMULATED SENSORS</span>
+    <span class="badge" id="wxBadge">Rain forecast: loading…</span>
+    <span class="simbar-text">Water levels come from a physics model of the drain network. Rainfall is the live Open-Meteo forecast for the pilot village, plus any scenario rain you add.</span>
+  </div>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <div class="kpis" id="kpis"></div>
+      <div class="grid">
+        <div class="col-main">
+          <div class="card">
+            <div class="card-h">
+              <h2>Drain network</h2>
+              <div class="legend">
+                <span><i class="dot ok"></i>Normal</span>
+                <span><i class="dot watch"></i>Watch</span>
+                <span><i class="dot high"></i>High</span>
+                <span><i class="dot crit"></i>Critical</span>
+                <span><i class="dot fault"></i>Sensor fault</span>
+              </div>
+            </div>
+            <div id="netMap" class="netmap"></div>
+          </div>
+          <div class="row2">
+            <div class="card">
+              <div class="card-h"><h2>Rainfall · next 24 h</h2><span class="muted" id="rainSum"></span></div>
+              <div id="rainChart"></div>
+            </div>
+            <div class="card">
+              <div class="card-h"><h2 id="nodeTitle">Node detail</h2><span class="muted" id="nodeCaps"></span></div>
+              <div id="nodeDetail"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-side">
+          <div class="card">
+            <div class="card-h"><h2>Priority queue</h2><span class="muted">ranked by risk</span></div>
+            <div id="priority"></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h2>Alerts sent</h2><span class="muted" id="alertLangNote"></span></div>
+            <div id="alerts" class="alerts"></div>
+          </div>
+          <div class="card" id="crewCard">
+            <div class="card-h"><h2>Crew app</h2><span class="badge" id="crewMode">…</span></div>
+            <div class="crewrow">
+              <div id="crewQr" class="qr" title="Scan to open the crew app"></div>
+              <div class="crewinfo">
+                <div class="muted">Room code</div>
+                <div class="room" id="roomCode">-----</div>
+                <a id="crewLink" class="btn small" target="_blank" rel="noopener">Open crew app ↗</a>
+              </div>
+            </div>
+            <details class="live" id="liveBox">
+              <summary>Live WhatsApp / SMS alerts</summary>
+              <label class="chk"><input type="checkbox" id="liveOn"> Send real alerts when tasks are raised</label>
+              <label class="fld">Demo PIN <input id="livePin" type="password" autocomplete="off"></label>
+              <label class="fld">Extra numbers (optional) <input id="liveTo" placeholder="whatsapp:+9198XXXXXXXX, +9198XXXXXXXX"></label>
+              <div class="btnrow"><button class="btn small" id="liveTest">Send test alert</button></div>
+              <div class="muted small" id="liveStatus"></div>
+            </details>
+          </div>
+          <div class="card scenario">
+            <div class="card-h"><h2>Scenario controls</h2><span class="badge sim">DEMO</span></div>
+            <button class="btn primary wide" id="btnGuided">▶ Run guided demo</button>
+            <div class="ctl">
+              <label>Node <select id="scNode"></select></label>
+              <label>Debris <input type="range" id="scSev" min="0.2" max="0.95" step="0.05" value="0.8"><span id="scSevVal">80%</span></label>
+            </div>
+            <div class="btnrow">
+              <button class="btn" id="btnDebris">Drop debris</button>
+              <button class="btn" id="btnFoul">Foul sensor</button>
+            </div>
+            <div class="ctl">
+              <label>Storm <select id="scStorm">
+                <option value="0">None</option>
+                <option value="12">Moderate · 12 mm/h × 3 h</option>
+                <option value="25" selected>Heavy · 25 mm/h × 3 h</option>
+                <option value="40">Extreme · 40 mm/h × 3 h</option>
+              </select></label>
+              <label>in <select id="scStormIn">
+                <option value="1">1 h</option>
+                <option value="3" selected>3 h</option>
+                <option value="6">6 h</option>
+              </select></label>
+            </div>
+            <div class="btnrow">
+              <button class="btn" id="btnStorm">Add storm to forecast</button>
+              <label class="chk"><input type="checkbox" id="scJam"> Rake jams</label>
+            </div>
+            <button class="btn ghost wide" id="btnReset">Reset simulation</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TASKS -->
+    <section class="view" id="view-tasks">
+      <div class="card">
+        <div class="card-h"><h2>Maintenance tasks</h2><span class="muted">Detect → Assign → Inspect → Clear → Verify</span></div>
+        <div id="taskBoard" class="board"></div>
+      </div>
+    </section>
+
+    <!-- METRICS -->
+    <section class="view" id="view-metrics">
+      <div class="kpis" id="impactKpis"></div>
+      <div class="row2">
+        <div class="card">
+          <div class="card-h"><h2>Waterlogging: DrainSmart vs no action</h2><span class="muted">model estimate</span></div>
+          <div id="wlChart"></div>
+          <p class="muted small">The "no action" line is a shadow copy of the simulation: it gets the same rain and debris but nobody clears anything. The gap between the lines is the waterlogging that clearing avoided.</p>
+        </div>
+        <div class="card">
+          <div class="card-h"><h2>Response times</h2><span class="muted">sim-minutes, closed tasks</span></div>
+          <div id="respTable"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h2>Event log</h2><span class="muted">audit trail for the panchayat</span></div>
+        <div id="eventLog" class="eventlog"></div>
+      </div>
+    </section>
+
+    <!-- FARM LOG -->
+    <section class="view" id="view-farm">
+      <div class="row2">
+        <div class="card">
+          <div class="card-h"><h2>Field advisories</h2><span class="muted">from forecast + drain status</span></div>
+          <div id="advisories"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h2>Record a field operation</h2></div>
+          <form id="logForm" class="logform">
+            <label>Field <select id="lfField"></select></label>
+            <label>Operation <select id="lfOp">
+              <option>Irrigation</option><option>Fertiliser</option><option>Pesticide / IPM</option>
+              <option>Weeding</option><option>Field observation</option>
+            </select></label>
+            <label>Details <input id="lfNote" placeholder="e.g. Urea 25 kg, standing water 5 cm"></label>
+            <button class="btn primary" type="submit">Save entry</button>
+          </form>
+          <div id="logList" class="loglist"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="view" id="view-about">
+      <div class="card prose">
+        <h2>How DrainSmart works</h2>
+        <div class="pipeline">
+          <div><b>1 · Sense</b><span>Water-level sensors upstream and downstream of each culvert, a rain gauge plus forecast, and optional cameras at trash screens</span></div>
+          <div><b>2 · Detect</b><span>A digital twin predicts the level a <em>clear</em> drain would show for the rain that fell. Water backing up above that prediction raises the Blockage Index</span></div>
+          <div><b>3 · Prioritise</b><span>Risk = blockage likelihood × rain coming in the next 12 h × how close the water is to the bank × acres at stake</span></div>
+          <div><b>4 · Alert</b><span>SMS / voice alerts in the local language to the village maintenance crew, escalating to the panchayat if nobody accepts the task</span></div>
+          <div><b>5 · Clear</b><span>Supervised rake at fitted nodes, behind a safety checklist and emergency stop; manual crews everywhere else</span></div>
+          <div><b>6 · Verify</b><span>The task closes only when the sensors show water flowing normally again. If it doesn't, the task reopens automatically</span></div>
+        </div>
+        <h3>The core signal</h3>
+        <p>When a culvert chokes, water piles up upstream while the downstream level stays flat or falls. Heavy rain raises <em>both</em> sides. DrainSmart compares each sensor against the digital twin's prediction, so a storm doesn't look like a blockage and the crew isn't flooded with false alarms.</p>
+        <h3>Failure cases handled</h3>
+        <ul>
+          <li><b>Sensor fouling.</b> A reading that stops moving is flagged as a sensor fault, never as "all clear". The node falls back to its camera, and the system raises a sensor-service task.</li>
+          <li><b>Partial clearing.</b> If the rake jams and the sensors still show a backup, verification fails and the task reopens for a manual crew.</li>
+          <li><b>Downstream echo.</b> Water released after an upstream blockage clears can look like a new blockage further down. That is attributed to the upstream node, so no extra alert goes out.</li>
+          <li><b>No connectivity.</b> Nodes buffer readings and the alert falls back to SMS. In this prototype, the dashboard falls back to a stored forecast if the weather API is unreachable.</li>
+        </ul>
+        <h3>What is real and what is simulated in this prototype</h3>
+        <ul>
+          <li><b>Real:</b> the rainfall forecast (Open-Meteo), the detection and risk algorithms, the alerting, task and verification workflow, the multilingual alerts and the audit log.</li>
+          <li><b>Simulated:</b> the water-level and camera readings, generated by a hydraulic model of a 6-node village drain with 131 acres of paddy. The field pilot replaces this with ESP32 + ultrasonic sensor nodes.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <!-- Safety checklist modal -->
+  <div class="modal" id="safetyModal" hidden>
+    <div class="modal-card">
+      <h2>Supervised clearing · safety check</h2>
+      <p class="muted" id="safetyNode"></p>
+      <label class="chk"><input type="checkbox" class="sc"> Crew confirms no person or animal is in the channel within 10 m</label>
+      <label class="chk"><input type="checkbox" class="sc"> Supervisor is on site and can see the rake</label>
+      <label class="chk"><input type="checkbox" class="sc"> Emergency stop tested and working</label>
+      <label class="chk"><input type="checkbox" class="sc"> Power isolation confirmed (no exposed wiring in water)</label>
+      <div class="btnrow end">
+        <button class="btn ghost" id="safetyCancel">Cancel</button>
+        <button class="btn primary" id="safetyGo" disabled>Start rake</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="sync.js"></script>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
